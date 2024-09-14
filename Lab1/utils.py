@@ -1,10 +1,16 @@
 import numpy as np
 from interval_module import Interval
 
-# Генерация интервальной матрицы 2x2
+
 def get_interval_matrix(eps: float):
-    return np.array([[Interval(1 - eps, 1 + eps), Interval(0.9 - eps, 0.9 + eps)],
-                     [Interval(1.5 - eps, 1.5 + eps), Interval(1.1 - eps, 1.1 + eps)]])
+    return np.array([[Interval(1.05 - eps, 1.05 + eps), Interval(0.95 - eps, 0.95 + eps)],
+                     [Interval(1 - eps, 1 + eps), Interval(1 - eps, 1 + eps)]])
+
+def print_matrix_for_latex(matrix, index=0):
+    print("\\begin{equation}\n\\text A_%d = \\begin{pmatrix}" % index)
+    for items in matrix:
+        print("&".join([item.__repr__() for item in items]) + "\\\\\n")
+    print("\end{pmatrix}\n\end{equation}")
 
 
 # Нахождение максимального среднего значения в матрице
@@ -16,40 +22,30 @@ def find_max_middle(matrix):
     return max_mid
 
 
-# Пересечение интервалов
-def intersect_intervals(ratios):
-    item = ratios[0]
-    for ratio in ratios[1:]:
-        item = item & ratio
-        if item.lower == item.upper == 0:  # Если пересечение пустое
-            return None
-    return item
+def determ(i, j, matrix):
+    return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
 
 
-# Проверка коллинеарности векторов
-def is_scalar(v1, v2) -> bool:
-    ratios = []
-    for i in range(len(v1)):
-        try:
-            ratio = v1[i] / v2[i]
-        except ZeroDivisionError:
-            print(f"Pidr_1 {v2[i]}")
-            return False
-        ratios.append(ratio)
-    return intersect_intervals(ratios) is not None
-
-
-# Оптимизация для пары векторов
-def optimize(i, j, left, right, delta) -> (float, float):
+def optimize(left, right, delta) -> (float, float):
     counter = 0
     while right - left > delta:
         c = (right + left) / 2
         counter += 1
         matrix_tmp = get_interval_matrix(c)
-        v1, v2 = matrix_tmp[i], matrix_tmp[j]
+        interval = determ(0, 0, matrix_tmp)
 
-        if not is_scalar(v1, v2):
+        if counter < 5 or counter ==34:
+            print("-" * 20)
+            print(f"$\\delta = {c}$")
+            print(f"Number: {counter}:\n{print_matrix_for_latex(matrix_tmp, counter)}"
+                  f"\nИтоговый интервал из определителя{interval}")
+
+        if not 0 in interval:
             left = c
+            print("-" * 20 + "\n" + "-" * 20)
+            print(f"$\\delta = {c}$")
+            print(f"Number: {counter}:\n{print_matrix_for_latex(matrix_tmp, counter)}"
+                  f"\nИтоговый интервал из определителя{interval}")
         else:
             right = c
 
@@ -57,24 +53,22 @@ def optimize(i, j, left, right, delta) -> (float, float):
     return right, left, counter
 
 
-# Основная функция оптимизации
-def determinant_optimization(matrix=None, delta=1e-5):
+def determinant_optimization_new(matrix=None, delta=1e-5):
     if matrix is None:
         matrix = get_interval_matrix(0)
 
     mid = find_max_middle(matrix)
-    n = len(matrix)
 
-    eps_curr = mid * 1.7 + 15
+    eps_curr = mid
     eps_left_bound = 0
     counter = 1
-    for i in range(n):
-        for j in range(i + 1, n):  # Изменил цикл, чтобы j всегда > i
-            eps_curr, eps_left_bound, amount = optimize(i, j,
-                                                eps_left_bound, eps_curr, delta)
-            counter += amount
+
+    eps_curr, eps_left_bound, amount = optimize(eps_left_bound, eps_curr, delta)
+
     print(f"Кол-во вызовов функции: {counter + 1}")
     return eps_curr
 
-for eps in [1e-1, 1e-2, 1e-3, 1e-14]:
-    print(f"eps = {eps} Result = {determinant_optimization(delta=eps)}")
+
+# Task info for research
+
+determinant_optimization_new(delta=1e-10)
