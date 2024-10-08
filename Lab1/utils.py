@@ -51,54 +51,47 @@ def save_step_info(info: list[str], folder_name="fmatrix"):
     except Exception as e:
         print(f"Ошибка при записи файла: {e}")
 
-def generate_step_info(matrix, step_number, delta, interval):
+def generate_step_info(matrix, step_number, delta, interval, left_bound, right_bound):
     return f"$\\delta = {delta}$" + \
     f"\nNumber: {step_number}:\n{print_matrix_for_latex(matrix, step_number)}" + \
-    f"\nИтоговый интервал из определителя $\\delta \\in ${interval}"
+    f"\nИтоговый интервал из определителя {interval}"+\
+    f"\n$\\delta \\in $ [{left_bound}, {right_bound}]"
 
 def optimize(left, right, delta, get_matrix = get_interval_matrix, folder_name="fmatrix") -> (float, float):
     counter = 0
     counter_left = 0
     counter_right = 0
-    info_steps = [] 
+    info_steps = []
+    trace = "-" * 20 + "\n" + "-" * 20
     while right - left > delta:
         c = (right + left) / 2
         counter += 1
         matrix_tmp = get_matrix(c)
         interval = determ(0, 0, matrix_tmp)
-
-        if counter >= 34:
-            info_steps.append(generate_step_info(matrix_tmp, counter, c, interval))
-            
-            print("-" * 20)
-            print(f"$\\delta = {c}$")
-            print(f"Number: {counter}:\n{print_matrix_for_latex(matrix_tmp, counter)}"
-                  f"\nИтоговый интервал из определителя{interval}")
-            illustrate_matrix(matrix=matrix_tmp, step_number=counter, folder_name=folder_name, delta=c)
-
         if not 0 in interval:
-            left = c
-            
             if counter_left < 2:
-                step_info = generate_step_info(matrix_tmp, counter, c, interval)
+                step_info = generate_step_info(matrix_tmp, counter, c, interval, left_bound=left, right_bound=right)
                 info_steps.append(step_info)
-                print("-" * 20 + "\n" + "-" * 20)
-                print("Сдвиг влево: ")
-                print("-" * 20 + "\n" + "-" * 20)
-                print(step_info)
+                print(trace + "\nСдвиг влево:\n" + trace + "\n" + step_info)
                 illustrate_matrix(matrix=matrix_tmp, step_number=counter, folder_name=folder_name, delta=c)
             counter_left += 1
+            left = c
         else:
+            
             if counter_right < 2:
-                step_info = generate_step_info(matrix_tmp, counter, c, interval)
-                info_steps.append(generate_step_info(matrix_tmp, counter, c, interval))
-                print("-" * 20 + "\n" + "-" * 20)
-                print("Сдвиг вправо: ")
-                print("-" * 20 + "\n" + "-" * 20)
-                print(step_info)
+                step_info = generate_step_info(matrix_tmp, counter, c, interval, left_bound=left, right_bound=right)
+                info_steps.append(step_info)
+                print(trace + "\nСдвиг вправо:\n" + trace + "\n" + step_info)
                 illustrate_matrix(matrix=matrix_tmp, step_number=counter, folder_name=folder_name, delta=c)
             counter_right += 1
             right = c
+
+    info_steps.append(generate_step_info(matrix_tmp, counter, c, interval, left_bound=left, right_bound=right))
+    print("-" * 20)
+    print(f"$\\delta = {c}$")
+    print(f"Number: {counter}:\n{print_matrix_for_latex(matrix_tmp, counter)}"
+        f"\nИтоговый интервал из определителя{interval}")
+    illustrate_matrix(matrix=matrix_tmp, step_number=counter, folder_name=folder_name, delta=c)
 
     save_step_info(info_steps, folder_name=folder_name)
     
@@ -123,4 +116,5 @@ def determinant_optimization_new(matrix=None, delta=1e-5, get_matrix = get_inter
 
 # Task info for research
 
-determinant_optimization_new(delta=1e-10, get_matrix=get_interval_matrix, folder_name="fmatrix")
+# determinant_optimization_new(delta=1e-10, get_matrix=get_interval_matrix, folder_name="fmatrix")
+determinant_optimization_new(delta=1e-10, get_matrix=get_interval_matrix_new, folder_name="smatrix")

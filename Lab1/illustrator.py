@@ -11,8 +11,8 @@ def illustrate_matrix(matrix, step_number, delta,folder_name="fmatrix"):
         x_left = np.linspace(0, x - dx/2)
         x_right = np.linspace(0, x + dx/2) 
         if dx == 0 or dy == 0:
-            plt.plot(x, y, 'o', color=color)
-            plt.text(x, y, f"({x:.2f}, {y:.2f})", ha="center", va="center")
+            plt.plot(x, y, 'o', color=color, markersize=10)
+            # plt.text(x, y, f"({x:.2f}, {y:.2f})", ha="center", va="center")
             if dx == 0:
                 plt.plot([x, x], [y - dy / 2, y + dy / 2], color=color)
             else:
@@ -37,7 +37,7 @@ def illustrate_matrix(matrix, step_number, delta,folder_name="fmatrix"):
         draw_square(point, [item.width() for item in row], step_number, colors[i])
 
     plt.grid()
-    plt.title(f"Step {step_number}, delta = {delta}")
+    plt.title(f"Step {step_number}, delta = {np.round(delta, 3)}")
 
     base_dir = os.path.abspath(os.path.join(".", "Lab1/graphics"))
     path_info = os.path.join(base_dir, folder_name)
